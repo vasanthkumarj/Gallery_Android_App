@@ -13,8 +13,8 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 
 import vk.com.gallery_android_app.adapter.GalleryAdapter;
 import vk.com.gallery_android_app.provider.GalleryDataProvider;
@@ -24,18 +24,21 @@ public class MainActivity extends AppCompatActivity {
     private Integer[] imageViewIdArray = {R.mipmap.bigil, R.mipmap.comali, R.mipmap.ethir, R.mipmap.imk,
                              R.mipmap.kabali, R.mipmap.kvendam, R.mipmap.lucifer, R.mipmap.manithan,
                              R.mipmap.monster, R.mipmap.ngk};
-    private List<Integer> imageViewIdList = Arrays.asList(imageViewIdArray);
-    private List<Integer> tempList = new ArrayList<>();
-    private ArrayAdapter<Integer> imageViewIdArrayAdapter;
+    private List<Integer> imageViewIdList = new ArrayList<>();
+    private List<Integer> tempImageIdListForActionMode = new ArrayList<>();
     private ListView listView;
     private GalleryDataProvider galleryDataProvider;
     private GalleryAdapter galleryAdapter;
-    private List galleryDataProviderList =  new ArrayList();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        for(Integer i: imageViewIdArray)
+        {
+            imageViewIdList.add(i);
+        }
         listView = findViewById(R.id.list_view);
         galleryAdapter = new GalleryAdapter(getApplicationContext(), R.layout.custom_image_list_view_layout);
         listView.setAdapter(galleryAdapter);
@@ -43,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
         {
             galleryDataProvider = new GalleryDataProvider(image);
             galleryAdapter.add(galleryDataProvider);
-            galleryDataProviderList.add(galleryDataProvider);
         }
 
 
@@ -55,13 +57,13 @@ public class MainActivity extends AppCompatActivity {
 
                 if(b)
                 {
-                    tempList.add(imageViewIdList.get(i));
-                    actionMode.setTitle(tempList.size()+" item selected");
+                    tempImageIdListForActionMode.add(imageViewIdList.get(i));
+                    actionMode.setTitle(tempImageIdListForActionMode.size()+" item selected");
                 }
                 else
                 {
-                    tempList.remove(imageViewIdList.get(i));
-                    actionMode.setTitle(tempList.size()+" item selected");
+                    tempImageIdListForActionMode.remove(imageViewIdList.get(i));
+                    actionMode.setTitle(tempImageIdListForActionMode.size()+" item selected");
                 }
 
 
@@ -83,20 +85,25 @@ public class MainActivity extends AppCompatActivity {
             public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
                 if(menuItem.getItemId()==R.id.delete)
                 {
-                    for(Object item : tempList)
+                    //int size = tempImageIdListForActionMode.size();
+                    for(Object item : tempImageIdListForActionMode)
                     {
-                        for(Object o : galleryAdapter.getList())
+                        List<GalleryDataProvider> dynamicList = galleryAdapter.getList();
+                        ListIterator<GalleryDataProvider> dynamicIterator = dynamicList.listIterator();
+                        while(dynamicIterator.hasNext())
                         {
-                            GalleryDataProvider dataProvider = (GalleryDataProvider) o;
+                            GalleryDataProvider dataProvider = dynamicIterator.next();
                             if(dataProvider.getImageId()==(int) item)
                             {
                                 galleryAdapter.remove(dataProvider);
+                                int index = imageViewIdList.indexOf(dataProvider.getImageId());
+                                imageViewIdList.remove(index);
+                                break;
                             }
                         }
 
                     }
-                    //galleryDataProviderList.clear();
-                    //galleryAdapter.notifyDataSetChanged();
+                    galleryAdapter.notifyDataSetChanged();
                     Toast.makeText(getApplicationContext(),galleryAdapter.getCount()+" item deleted", Toast.LENGTH_LONG).show();
                     actionMode.finish();
                     return true;
@@ -106,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onDestroyActionMode(ActionMode actionMode) {
-              tempList.clear();
+              tempImageIdListForActionMode.clear();
             }
         });
     }

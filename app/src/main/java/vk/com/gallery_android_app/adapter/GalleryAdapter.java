@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 
 import vk.com.gallery_android_app.R;
 import vk.com.gallery_android_app.provider.GalleryDataProvider;
@@ -53,6 +54,7 @@ public class GalleryAdapter extends ArrayAdapter {
     public List<GalleryDataProvider> getList() {
         return list;
     }
+
 
     @NonNull
     @Override
